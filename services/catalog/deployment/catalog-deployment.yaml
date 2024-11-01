@@ -1,0 +1,92 @@
+---
+# Source: catalog/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+  labels:
+    helm.sh/chart: catalog-0.8.2
+    app.kubernetes.io/name: catalog
+    app.kubernetes.io/instance: catalog
+    app.kubernetes.io/component: service
+    app.kuberneres.io/owner: retail-store-sample
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: catalog
+      app.kubernetes.io/instance: catalog
+      app.kubernetes.io/component: service
+      app.kuberneres.io/owner: retail-store-sample
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app.kubernetes.io/name: catalog
+        app.kubernetes.io/instance: catalog
+        app.kubernetes.io/component: service
+        app.kuberneres.io/owner: retail-store-sample
+    spec:
+      serviceAccountName: catalog
+      securityContext:
+        fsGroup: 1000
+      imagePullSecrets:
+        - name: registry-secret
+      containers:
+        - name: catalog
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: catalog-db
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: catalog-db
+                  key: password
+          envFrom:
+            - configMapRef:
+                name: catalog
+          securityContext:
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+          #image: "public.ecr.aws/aws-containers/retail-store-sample-catalog:0.8.2"
+          image: "registry.alvaro.studentdumbways.my.id/retail-store-sample/catalog:latest"
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 3
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              cpu: 128m
+              memory: 256Mi
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+      volumes:
+        - name: tmp-volume
+          emptyDir:
+            medium: Memory
+

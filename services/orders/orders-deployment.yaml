@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders
+  labels:
+    app.kubernetes.io/name: orders
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: orders
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: orders
+    spec:
+      serviceAccountName: orders
+      containers:
+        - name: orders
+          image: "public.ecr.aws/aws-containers/retail-store-sample-orders:0.8.2"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: JAVA_OPTS
+              value: -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/urandom
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: orders-db
+                  key: username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: orders-db
+                  key: password
+          envFrom:
+            - secretRef:
+                name: orders-rabbitmq
+            - configMapRef:
+                name: orders
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              cpu: 128m
+              memory: 512Mi
+
