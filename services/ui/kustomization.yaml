@@ -2,7 +2,4 @@ namespace: default
 
 resources:
   - deployment/ui-deployment.yaml
-  - ui-service.yaml
-  - ui-configmap.yaml
-  - ui-serviceaccount.yaml
   - ui.yaml
