@@ -57,7 +57,7 @@ spec:
             runAsNonRoot: true
             runAsUser: 1000
               #image: "reyhanalvr/retail-ui:0.0.2"
-          image: "registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:0.0.1"
+          image: "registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:36"
           imagePullPolicy: Always
           ports:
             - name: http
