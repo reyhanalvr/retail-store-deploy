@@ -11,9 +11,9 @@ pipeline {
                 script {
                     sshagent(credentials: ['ssh-server']) {
                         sh """
-                        ssh -o StrictHostKeyChecking=no ${SSH_DEPLOY_SERVER} '
-                            echo 'Testing"
-                        '
+                        ssh -o StrictHostKeyChecking=no ${SSH_DEPLOY_SERVER} "
+                            echo 'Testing'
+                        "
                         """
                     }
                 }
