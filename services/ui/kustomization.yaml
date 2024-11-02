@@ -3,3 +3,6 @@ namespace: default
 resources:
   - deployment/ui-deployment.yaml
   - ui.yaml
+
+patchesStrategicMerge:
+  - replica-patch.yaml
