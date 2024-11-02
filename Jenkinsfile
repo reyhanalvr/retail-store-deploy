@@ -9,7 +9,7 @@ pipeline {
         stage('Docker Pull') {
             steps {
                 script {
-                    sshagent(credentials: ['ssh-deployment-server']) {
+                    sshagent(credentials: ['ssh-server']) {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${SSH_DEPLOY_SERVER} '
                             echo 'Testing"
