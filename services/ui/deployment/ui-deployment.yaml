@@ -56,8 +56,8 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
-              #image: registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:45
-          image: registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:45
+              #image: registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:46
+          image: registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:46
           imagePullPolicy: Always
           ports:
             - name: http
