@@ -10,17 +10,12 @@ pipeline {
         stage('Check for UI Changes') {
             steps {
                 script {
-                    // Cek commit sebelumnya untuk deteksi perubahan
                     def previousCommit = sh(script: 'git rev-parse HEAD^', returnStdout: true).trim()
-                    // Cek apakah ada perubahan di src/ui
                     def changes = sh(
                         script: "git diff --name-only ${previousCommit} HEAD | grep '^src/ui/' || true",
                         returnStdout: true
                     ).trim()
-
-                    // Jika ada perubahan, atur hasUiChanges ke true
                     hasUiChanges = changes ? true : false
-
                     echo "Changes detected in src/ui: ${hasUiChanges}"
                 }
             }
@@ -122,28 +117,7 @@ pipeline {
                 }
             }
         }
-
-    //     stage('Change Version for Deployment') {
-    //         when {
-    //             expression { return hasUiChanges }
-    //         }
-    //         steps {
-    //             script {
-    //                 sshagent(credentials: ['ssh-build-server']) {
-    //                     sh """
-    //                     ssh -o StrictHostKeyChecking=no ${SSH_BUILD_SERVER} '
-    //                         cd /home/alvaro/retail-store-deploy/services/ui/deployment &&
-    //                         sed -i "s|image:.*|image: ${IMAGE_TAG}|" ui-deployment.yaml &&
-    //                         git add ui-deployment.yaml &&
-    //                         git commit -m "Update image tag to ${IMAGE_TAG} for Argo CD deployment" &&
-    //                         git push origin master
-    //                     '
-    //                     """
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+    }
 
     post {
         success {
@@ -151,7 +125,6 @@ pipeline {
         }
         failure {
             echo 'Pipeline failed.'
-            }
-        }    
+        }
     }
 }
