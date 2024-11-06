@@ -51,7 +51,7 @@ pipeline {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${SSH_BUILD_SERVER} '
                             cd /home/alvaro/retail-store-deploy/retail-store-sample-app/src/ui &&
-                            docker buildx build --no-chache -t ${IMAGE_TAG} .
+                            docker buildx build --no-cache -t ${IMAGE_TAG} .
                         '
                         """
                     }
