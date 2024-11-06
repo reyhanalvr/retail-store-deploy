@@ -7,7 +7,7 @@ replicaCount: 1
 image:
   repository: registry.alvaro.studentdumbways.my.id/retail-store-sample/ui
   pullPolicy: Always
-  tag: latest
+  tag: 0.0.1
 
 imagePullSecrets:
   - name: registry-secret
