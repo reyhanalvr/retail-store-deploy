@@ -135,27 +135,37 @@ pipeline {
             }
             steps {
                 script {
-                    sh """
-                    sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" retail-store-sample-app/deploy/kubernetes/charts/ui/values.yaml
-                    """
+                    sshagent(credentials: ['ssh-build-server']) {
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${SSH_BUILD_SERVER} '
+                            sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" /home/alvaro/retail-store-deploy/retail-store-sample-app/deploy/kubernetes/charts/ui/values.yaml
+                        '
+                        """
+                    }
                 }
             }
         }
-
+        
         stage('Commit and Push New Image Changes') {
             when {
                 expression { hasUiChanges }
             }
             steps {
                 script {
-                    sh """
-                    git add retail-store-sample-app/deploy/kubernetes/charts/ui/values.yaml
-                    git commit -m "Update image tag to ${IMAGE_TAG} for deployment"
-                    git push origin master
-                    """
+                    sshagent(credentials: ['ssh-build-server']) {
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${SSH_BUILD_SERVER} '
+                            cd /home/alvaro/retail-store-deploy &&
+                            git add retail-store-sample-app/deploy/kubernetes/charts/ui/values.yaml &&
+                            git commit -m "Update image tag to ${IMAGE_TAG} for deployment" &&
+                            git push origin master
+                        '
+                        """
+                    }
                 }
             }
         }
+
 
         stage('Deploy to Argo CD') {
             when {
