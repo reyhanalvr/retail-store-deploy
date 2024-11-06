@@ -12,7 +12,7 @@ pipeline {
                 script {
                     def previousCommit = sh(script: 'git rev-parse HEAD^', returnStdout: true).trim()
                     def changes = sh(
-                        script: "git diff --name-only ${previousCommit} HEAD | grep '^src/ui/' || true",
+                        script: "git diff --name-only ${previousCommit} HEAD | grep 'src/ui/' || true",
                         returnStdout: true
                     ).trim()
                     hasUiChanges = changes ? true : false
