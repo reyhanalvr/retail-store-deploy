@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_TAG = "${IMAGE}:latest"
         DIR = "/home/alvaro/retail-store-deploy"
     }
 
