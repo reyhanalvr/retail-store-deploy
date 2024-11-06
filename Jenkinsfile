@@ -96,9 +96,9 @@ pipeline {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${SSH_BUILD_SERVER} '
                             echo "Displaying Docker Image Layers..." &&
-                            docker history ${IMAGE_TAG} &&
-                            docker inspect ${IMAGE_TAG} | grep -E "User|ExposedPorts|Env" &&
-                            CONTAINER_ID=\$(docker create ${IMAGE_TAG}) &&
+                            docker history registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:${IMAGE_TAG} &&
+                            docker inspect registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:${IMAGE_TAG} | grep -E "User|ExposedPorts|Env" &&
+                            CONTAINER_ID=\$(docker create registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:${IMAGE_TAG}) &&
                             docker export \${CONTAINER_ID} | tar -tvf - | grep -E "libarchive|openssl|curl" &&
                             docker rm \${CONTAINER_ID}
                         '
