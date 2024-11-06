@@ -68,6 +68,7 @@ pipeline {
             }
         }
 
+
         stage('Build Docker Image') {
             when {
                 expression { hasUiChanges }
@@ -78,7 +79,7 @@ pipeline {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${SSH_BUILD_SERVER} '
                             cd /home/alvaro/retail-store-deploy/retail-store-sample-app/src/ui &&
-                            docker buildx build --no-cache -t registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:${IMAGE_TAG} .
+                            docker buildx build -t registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:${IMAGE_TAG} .
                         '
                         """
                     }
