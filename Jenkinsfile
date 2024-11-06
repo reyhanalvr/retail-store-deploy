@@ -23,7 +23,7 @@ pipeline {
 
         stage('Git Pull on App Servers') {
             when {
-                expression { return hasUiChanges }
+                expression { hasUiChanges }
             }
             steps {
                 script {
@@ -41,9 +41,37 @@ pipeline {
             }
         }
 
+        stage('Get Latest Tag and Bump Version') {
+            when {
+                expression { hasUiChanges }
+            }
+            steps {
+                script {
+                    // Mengambil tag terbaru dari Git, jika tidak ada, default ke 0.0.1
+                    def latestTag = sh(script: "git describe --tags --abbrev=0 || echo '0.0.0'", returnStdout: true).trim()
+                    echo "Latest tag: ${latestTag}"
+        
+                    // Pisahkan versi
+                    def versionParts = latestTag.tokenize('.')
+                    if (versionParts.size() < 3) {
+                        // Jika tidak ada tag yang valid, set ke versi awal
+                        versionParts = ['0', '0', '1'] // Set tag awal ke 0.0.1
+                    } else {
+                        // Menaikkan patch version
+                        versionParts[2] = (versionParts[2].toInteger() + 1).toString()
+                    }
+                    def newTag = versionParts.join('.')
+                    echo "New tag: ${newTag}"
+        
+                    // Set IMAGE_TAG untuk digunakan dalam tahap berikutnya
+                    env.IMAGE_TAG = newTag
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             when {
-                expression { return hasUiChanges }
+                expression { hasUiChanges }
             }
             steps {
                 script {
@@ -51,7 +79,7 @@ pipeline {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${SSH_BUILD_SERVER} '
                             cd /home/alvaro/retail-store-deploy/retail-store-sample-app/src/ui &&
-                            docker buildx build --no-cache -t ${IMAGE_TAG} .
+                            docker buildx build --no-cache -t registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:${IMAGE_TAG} .
                         '
                         """
                     }
@@ -61,7 +89,7 @@ pipeline {
 
         stage('Basic Security Checks') {
             when {
-                expression { return hasUiChanges }
+                expression { hasUiChanges }
             }
             steps {
                 script {
@@ -83,7 +111,7 @@ pipeline {
 
         stage('Docker Registry Login and Push') {
             when {
-                expression { return hasUiChanges }
+                expression { hasUiChanges }
             }
             steps {
                 sshagent(credentials: ['ssh-build-server']) {
@@ -92,7 +120,7 @@ pipeline {
                             sh """
                             ssh -o StrictHostKeyChecking=no ${SSH_BUILD_SERVER} '
                                 echo ${DOCKER_PASS} | docker login ${DOCKER_REGISTRY} -u ${DOCKER_USER} --password-stdin &&
-                                docker push ${IMAGE_TAG}
+                                docker push registry.alvaro.studentdumbways.my.id/retail-store-sample/ui:${IMAGE_TAG}
                             '
                             """
                         }
@@ -101,26 +129,37 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image to Registry') {
+        stage('Update Values.yaml with New Tag') {
             when {
-                expression { return hasUiChanges }
+                expression { hasUiChanges }
             }
             steps {
                 script {
-                    sshagent(credentials: ['ssh-build-server']) {
-                        sh """
-                        ssh -o StrictHostKeyChecking=no ${SSH_BUILD_SERVER} '
-                            docker push ${IMAGE_TAG}
-                        '
-                        """
-                    }
+                    sh """
+                    sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" retail-store-sample-app/deploy/kubernetes/charts/ui/values.yaml
+                    """
+                }
+            }
+        }
+
+        stage('Commit and Push New Image Changes') {
+            when {
+                expression { hasUiChanges }
+            }
+            steps {
+                script {
+                    sh """
+                    git add retail-store-sample-app/deploy/kubernetes/charts/ui/values.yaml
+                    git commit -m "Update image tag to ${IMAGE_TAG} for deployment"
+                    git push origin master
+                    """
                 }
             }
         }
 
         stage('Deploy to Argo CD') {
             when {
-                expression { return hasUiChanges }
+                expression { hasUiChanges }
             }
             steps {
                 script {
