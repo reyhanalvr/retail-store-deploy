@@ -117,6 +117,23 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to Argo CD') {
+            when {
+                expression { return hasUiChanges }
+            }
+            steps {
+                script {
+                    sshagent(credentials: ['ssh-server']) {
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${SSH_DEPLOY_SERVER} '
+                            argocd app sync retail-store-ui --grpc-web
+                        '
+                        """
+                    }
+                }
+            }
+        }
     }
 
     post {
